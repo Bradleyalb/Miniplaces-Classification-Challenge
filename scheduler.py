@@ -17,7 +17,7 @@ import pandas as pd
 data_dir = "./data"
 
 
-MAX_ITER = 10
+MAX_ITER = float("inf")
 
 def initialize_model(model_name, num_classes, resume_from = None):
     # Initialize these variables which will be set in this if statement. Each of these
@@ -326,7 +326,8 @@ if __name__ == '__main__':
 	else:
 	    print("WARNING: Could not find GPU! Using CPU only")
 	# Detect if we have a GPU available
-	scheduler = pd.read_excel("Scheduler.xls")
+	schedule_name = "model_type_comparison"
+	scheduler = pd.read_excel(schedule_name + ".xls")
 	num_classes = 100
 	shuffle_datasets = True
 	save_dir = "weights"
@@ -385,12 +386,11 @@ if __name__ == '__main__':
 	  
 
 	  model_values[save_file] = model_stats
-	  break
 
 	df = pd.DataFrame.from_dict(model_values, orient='index') # convert dict to dataframe
 
 	
-	df.to_csv(dt_string + '.csv') # write dataframe to file
+	df.to_csv(schedule_name + '.csv') # write dataframe to file
 
 
 
