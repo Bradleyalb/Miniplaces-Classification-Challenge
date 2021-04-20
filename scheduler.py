@@ -118,7 +118,7 @@ def get_dataloaders(device,input_size, batch_size, shuffle = True):
     dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=False if x != 'train' else shuffle, num_workers=4) for x in data_transforms.keys()}
     return dataloaders_dict
 
-def train_model(device,model_name ,model, dataloaders, criterion, optimizer, save_dir = None, save_all_epochs=False, num_epochs=25):
+def train_model(max_train_time,device,model_name ,model, dataloaders, criterion, optimizer, save_dir = None, save_all_epochs=False, num_epochs=25):
     '''
     model: The NN to train
     dataloaders: A dictionary containing at least the keys 
@@ -142,7 +142,10 @@ def train_model(device,model_name ,model, dataloaders, criterion, optimizer, sav
 
     total_loss = []
     total_acc = []
+    start_time = time.perf_counter()
     for epoch in range(num_epochs):
+        if time.perf_counter() - start_time > max_train_time:
+            break
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
 
@@ -201,6 +204,7 @@ def train_model(device,model_name ,model, dataloaders, criterion, optimizer, sav
             if phase == 'val' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
+                torch.save(best_model_wts, os.path.join(save_dir, model_name + '_best.pt'))
             if phase == 'val':
                 val_acc_history.append(epoch_acc)
             if save_all_epochs:
@@ -310,87 +314,89 @@ def evaluate(model, dataloader, criterion, is_labelled = False, generate_labels 
 
 
 if __name__ == '__main__':
-	from datetime import datetime
+    from datetime import datetime
 
-	# datetime object containing current date and time
-	now = datetime.now()
-	 
+    # datetime object containing current date and time
+    now = datetime.now()
+     
 
-	# dd/mm/YY H:M:S
-	dt_string = now.strftime("Model values %d-%m-%Y %H!%M!%S")
-	print("date and time =", dt_string)
+    # dd/mm/YY H:M:S
+    dt_string = now.strftime("Model values %d-%m-%Y %H!%M!%S")
+    print("date and time =", dt_string)
 
-	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-	if torch.cuda.is_available():
-	    print("Using the GPU!")
-	else:
-	    print("WARNING: Could not find GPU! Using CPU only")
-	# Detect if we have a GPU available
-	schedule_name = "model_type_comparison"
-	scheduler = pd.read_excel(schedule_name + ".xls")
-	num_classes = 100
-	shuffle_datasets = True
-	save_dir = "weights"
-	os.makedirs(save_dir, exist_ok=True)
-	os.makedirs("plots", exist_ok=True)
-	data_dir = './data'
-	resume_from = None
-	save_all_epochs = False
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if torch.cuda.is_available():
+        print("Using the GPU!")
+    else:
+        print("WARNING: Could not find GPU! Using CPU only")
+    # Detect if we have a GPU available
+    schedule_name = "model_type_comparison_2"
+    scheduler = pd.read_excel(schedule_name + ".xls")
+    num_classes = 100
+    shuffle_datasets = True
+    save_dir = "weights"
+    os.makedirs(save_dir, exist_ok=True)
+    os.makedirs("plots", exist_ok=True)
+    data_dir = './data'
+    resume_from = None
+    save_all_epochs = False
 
-	print(scheduler)
-	model_values = {}
-	for index,row in scheduler.iterrows():
-	  start_time = time.perf_counter()
-	  
-	  model_name = row["Model Name"]
-	  batch_size = row["Batch Size"]
-	  num_epochs = row["Num Epochs"]
-	  save_file = row["Network Name"]
-
-
-	  model_stats = {}
-	  model_stats["Batch Size"] = batch_size
-	  model_stats["num_epochs"] = num_epochs
-	  model_stats["model_name"] = model_name
-
-	  model, input_size = initialize_model(model_name = model_name, num_classes = num_classes, resume_from = resume_from)
-	  dataloaders = get_dataloaders(device,input_size, batch_size, shuffle_datasets)
-	  criterion = get_loss()
-	  model = model.to(device)
-
-	  optimizer = make_optimizer(model)
-
-	  trained_model, validation_history = train_model(device=device,model_name=save_file, model=model, dataloaders=dataloaders, criterion=criterion, optimizer=optimizer,
-	           save_dir=save_dir, save_all_epochs=save_all_epochs, num_epochs=num_epochs)
-	  
-	  end_time = time.perf_counter()
-	  duration = end_time-start_time
-
-	  plt.plot(validation_history)
-	  plt.xlabel("Epoch")
-	  plt.ylabel("Accuracy")
-	  plt.title(model_name + " Accuracy")
-	  plt.savefig("plots/" + save_file + ' Accuracy.png')
-	  plt.clf()
-
-	  generate_validation_labels = True
-	  val_loss, val_top1, val_top5, val_labels = evaluate(model, dataloaders['val'], criterion, is_labelled = True, generate_labels = generate_validation_labels, k = 5)
-
-	  _, _, _, test_labels = evaluate(model, dataloaders['test'], criterion, is_labelled = False, generate_labels = True, k = 5)
+    print(scheduler)
+    model_values = {}
+    for index,row in scheduler.iterrows():
+      start_time = time.perf_counter()
+      
+      model_name = row["Model Name"]
+      batch_size = row["Batch Size"]
+      num_epochs = row["Num Epochs"]
+      save_file = row["Network Name"]
+      MAX_TRAIN_TIME = row["Max Train Time"]
 
 
-	  model_stats["Loss"] = val_loss
-	  model_stats["Top1 accuracies"] = val_top1
-	  model_stats["Top5 Accuracies"] = val_top5
-	  model_stats["Duration"] = duration
-	  
+      model_stats = {}
+      model_stats["Batch Size"] = batch_size
+      model_stats["num_epochs"] = num_epochs
+      model_stats["model_name"] = model_name
 
-	  model_values[save_file] = model_stats
+      model, input_size = initialize_model(model_name = model_name, num_classes = num_classes, resume_from = resume_from)
+      dataloaders = get_dataloaders(device,input_size, batch_size, shuffle_datasets)
+      criterion = get_loss()
+      model = model.to(device)
 
-	df = pd.DataFrame.from_dict(model_values, orient='index') # convert dict to dataframe
+      optimizer = make_optimizer(model)
 
-	
-	df.to_csv(schedule_name + '.csv') # write dataframe to file
+      trained_model, validation_history = train_model(max_train_time=MAX_TRAIN_TIME,device=device,model_name=save_file, model=model, dataloaders=dataloaders, criterion=criterion, optimizer=optimizer,
+               save_dir=save_dir, save_all_epochs=save_all_epochs, num_epochs=num_epochs)
+      
+      end_time = time.perf_counter()
+      duration = end_time-start_time
+
+      plt.plot(validation_history)
+      plt.xlabel("Epoch")
+      plt.ylabel("Accuracy")
+      plt.title(model_name + " Accuracy")
+      plt.savefig("plots/" + save_file + ' Accuracy.png')
+      plt.clf()
+
+      generate_validation_labels = True
+      val_loss, val_top1, val_top5, val_labels = evaluate(model, dataloaders['val'], criterion, is_labelled = True, generate_labels = generate_validation_labels, k = 5)
+
+      _, _, _, test_labels = evaluate(model, dataloaders['test'], criterion, is_labelled = False, generate_labels = True, k = 5)
+
+
+      model_stats["Loss"] = val_loss
+      model_stats["Top1 accuracies"] = val_top1
+      model_stats["Top5 Accuracies"] = val_top5
+      model_stats["Duration"] = duration
+      model_stats["MAX Train Time"] = MAX_TRAIN_TIME
+      
+
+      model_values[save_file] = model_stats
+
+    df = pd.DataFrame.from_dict(model_values, orient='index') # convert dict to dataframe
+
+    
+    df.to_csv(schedule_name + '.csv') # write dataframe to file
 
 
 
