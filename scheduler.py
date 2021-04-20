@@ -344,7 +344,7 @@ if __name__ == '__main__':
 	  
 	  model_name = row["Model Name"]
 	  batch_size = row["Batch Size"]
-	  num_epochs = 2
+	  num_epochs = row["Num Epochs"]
 	  save_file = row["Network Name"]
 
 
