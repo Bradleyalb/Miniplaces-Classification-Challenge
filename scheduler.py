@@ -42,6 +42,18 @@ def initialize_model(model_name, num_classes, resume_from = None):
         model_ft.fc = nn.Linear(num_ftrs, num_classes)
         input_size = 224
 
+    elif model_name == "resnet50":
+      model_ft = models.resnet50(pretrained=use_pretrained)
+      num_ftrs = model_ft.fc.in_features
+      model_ft.fc = nn.Linear(num_ftrs,num_classes)
+      input_size = 224
+
+    elif model_name == "resnet101":
+      model_ft = models.resnet101(pretrained=use_pretrained)
+      num_ftrs = model_ft.fc.in_features
+      model_ft.fc = nn.Linear(num_ftrs,num_classes)
+      input_size = 224
+
     elif model_name == "alexnet":
         """ Alexnet
         """
@@ -330,7 +342,7 @@ if __name__ == '__main__':
     else:
         print("WARNING: Could not find GPU! Using CPU only")
     # Detect if we have a GPU available
-    schedule_name = "model_type_comparison_2"
+    schedule_name = "layer_depth_comparison"
     scheduler = pd.read_excel(schedule_name + ".xls")
     num_classes = 100
     shuffle_datasets = True
