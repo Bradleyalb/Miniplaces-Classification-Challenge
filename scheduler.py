@@ -407,6 +407,9 @@ if __name__ == '__main__':
       model_stats["Top5 Accuracies"] = val_top5
       model_stats["Duration"] = duration
       model_stats["MAX Train Time"] = MAX_TRAIN_TIME
+      model_stats["random_flip"] = random_flip
+      model_stats["random_jitter"] = random_jitter
+      model_stats["resume_from"] = resume_from
       
 
       model_values[save_file] = model_stats
