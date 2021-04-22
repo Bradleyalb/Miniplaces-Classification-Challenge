@@ -223,6 +223,13 @@ def train_model(max_train_time,device,model_name ,model, dataloaders, criterion,
                 torch.save(best_model_wts, os.path.join(save_dir, model_name + '_best.pt'))
             if phase == 'val':
                 val_acc_history.append(epoch_acc)
+
+                plt.plot(val_acc_history)
+                plt.xlabel("Epoch")
+                plt.ylabel("Accuracy")
+                plt.title(model_name + " Accuracy")
+                plt.savefig("plots/" + model_name + ' Accuracy.png')
+                plt.clf()
             if save_all_epochs:
                 torch.save(model.state_dict(), os.path.join(save_dir, f'weights_{epoch}.pt'))
         print()
@@ -390,12 +397,7 @@ if __name__ == '__main__':
       end_time = time.perf_counter()
       duration = end_time-start_time
 
-      plt.plot(validation_history)
-      plt.xlabel("Epoch")
-      plt.ylabel("Accuracy")
-      plt.title(save_file + " Accuracy")
-      plt.savefig("plots/" + save_file + ' Accuracy.png')
-      plt.clf()
+      
 
       generate_validation_labels = True
       val_loss, val_top1, val_top5, val_labels = evaluate(model, dataloaders['val'], criterion, is_labelled = True, generate_labels = generate_validation_labels, k = 5)
