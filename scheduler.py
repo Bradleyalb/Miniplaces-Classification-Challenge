@@ -91,11 +91,11 @@ def initialize_model(model_name, num_classes, resume_from = None):
     
     if resume_from is not None:
         print("Loading weights from %s" % resume_from)
-        model_ft.load_state_dict(torch.load(resume_from))
+        model_ft.load_state_dict(torch.load("weights/"+resume_from))
     
     return model_ft, input_size
 
-def get_dataloaders(device,input_size, batch_size, shuffle = True):
+def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= True):
     # How to transform the image when you are loading them.
     # you'll likely want to mess with the transforms on the training set.
     
@@ -122,15 +122,18 @@ def get_dataloaders(device,input_size, batch_size, shuffle = True):
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
     }
+    if mirror_data:
+        data_transforms['train'] = transforms.Compose([data_transforms['train'],transforms.RandomHorizontalFlip(p=0.5)])
+    if random_jitter:
+        data_transforms['train'] = transforms.Compose([data_transforms['train'],transforms.ColorJitter(brightness=0.3)])
     # Create training and validation datasets
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in data_transforms.keys()}
     # Create training and validation dataloaders
     # Never shuffle the test set
-    print(image_datasets)
     dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=False if x != 'train' else shuffle, num_workers=4) for x in data_transforms.keys()}
     return dataloaders_dict
 
-def train_model(max_train_time,device,model_name ,model, dataloaders, criterion, optimizer, save_dir = None, save_all_epochs=False, num_epochs=25):
+def train_model(max_train_time,device,model_name ,model, dataloaders, criterion, optimizer, random_flip, random_jitter, save_dir = None, save_all_epochs=False, num_epochs=25):
     '''
     model: The NN to train
     dataloaders: A dictionary containing at least the keys 
@@ -342,7 +345,7 @@ if __name__ == '__main__':
     else:
         print("WARNING: Could not find GPU! Using CPU only")
     # Detect if we have a GPU available
-    schedule_name = "layer_depth_comparison"
+    schedule_name = "augmentations"
     scheduler = pd.read_excel(schedule_name + ".xls")
     num_classes = 100
     shuffle_datasets = True
@@ -350,7 +353,7 @@ if __name__ == '__main__':
     os.makedirs(save_dir, exist_ok=True)
     os.makedirs("plots", exist_ok=True)
     data_dir = './data'
-    resume_from = None
+    
     save_all_epochs = False
 
     print(scheduler)
@@ -363,6 +366,9 @@ if __name__ == '__main__':
       num_epochs = row["Num Epochs"]
       save_file = row["Network Name"]
       MAX_TRAIN_TIME = row["Max Train Time"]
+      random_flip = row["Random Flip"]
+      random_jitter = row["Random Jitter"]
+      resume_from = row["Resume From"]
 
 
       model_stats = {}
@@ -377,7 +383,7 @@ if __name__ == '__main__':
 
       optimizer = make_optimizer(model)
 
-      trained_model, validation_history = train_model(max_train_time=MAX_TRAIN_TIME,device=device,model_name=save_file, model=model, dataloaders=dataloaders, criterion=criterion, optimizer=optimizer,
+      trained_model, validation_history = train_model(random_flip = random_flip, random_jitter=random_jitter, max_train_time=MAX_TRAIN_TIME,device=device,model_name=save_file, model=model, dataloaders=dataloaders, criterion=criterion, optimizer=optimizer,
                save_dir=save_dir, save_all_epochs=save_all_epochs, num_epochs=num_epochs)
       
       end_time = time.perf_counter()
@@ -386,7 +392,7 @@ if __name__ == '__main__':
       plt.plot(validation_history)
       plt.xlabel("Epoch")
       plt.ylabel("Accuracy")
-      plt.title(model_name + " Accuracy")
+      plt.title(save_file + " Accuracy")
       plt.savefig("plots/" + save_file + ' Accuracy.png')
       plt.clf()
 
