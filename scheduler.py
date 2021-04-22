@@ -125,7 +125,7 @@ def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= 
     if mirror_data:
         data_transforms['train'].insert(0,transforms.RandomHorizontalFlip(p=0.5))
     if random_jitter:
-        data_transforms['train'].inset(0,transforms.ColorJitter(brightness=0.3))
+        data_transforms['train'].insert(0,transforms.ColorJitter(brightness=0.3))
     data_transforms['train'] = transforms.Compose(data_transforms['train'])
     # Create training and validation datasets
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in data_transforms.keys()}
