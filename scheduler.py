@@ -103,12 +103,12 @@ def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= 
     # then convert it to a [C,H,W] tensor, then normalize it to values with a given mean/stdev. These normalization constants
     # are derived from aggregating lots of data and happen to produce better results.
     data_transforms = {
-        'train': transforms.Compose([
+        'train': [
             transforms.Resize(input_size),
             transforms.CenterCrop(input_size),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        ]),
+        ],
         'val': transforms.Compose([
             transforms.Resize(input_size),
             transforms.CenterCrop(input_size),
@@ -123,9 +123,10 @@ def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= 
         ])
     }
     if mirror_data:
-        data_transforms['train'] = transforms.Compose([data_transforms['train'],transforms.RandomHorizontalFlip(p=0.5)])
+        data_transforms['train'].append(transforms.RandomHorizontalFlip(p=0.5))
     if random_jitter:
-        data_transforms['train'] = transforms.Compose([data_transforms['train'],transforms.ColorJitter(brightness=0.3)])
+        data_transforms['train'].append(transforms.ColorJitter(brightness=0.3))
+    data_transforms['train'] = transforms.Compose(data_transforms['train'])
     # Create training and validation datasets
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in data_transforms.keys()}
     # Create training and validation dataloaders
