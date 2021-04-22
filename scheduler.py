@@ -95,7 +95,7 @@ def initialize_model(model_name, num_classes, resume_from = None):
     
     return model_ft, input_size
 
-def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= True):
+def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= True,random_flip=False, random_jitter=False):
     # How to transform the image when you are loading them.
     # you'll likely want to mess with the transforms on the training set.
     
@@ -134,7 +134,7 @@ def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= 
     dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=False if x != 'train' else shuffle, num_workers=4) for x in data_transforms.keys()}
     return dataloaders_dict
 
-def train_model(max_train_time,device,model_name ,model, dataloaders, criterion, optimizer, random_flip, random_jitter, save_dir = None, save_all_epochs=False, num_epochs=25):
+def train_model(max_train_time,device,model_name ,model, dataloaders, criterion, optimizer, save_dir = None, save_all_epochs=False, num_epochs=25):
     '''
     model: The NN to train
     dataloaders: A dictionary containing at least the keys 
@@ -378,13 +378,13 @@ if __name__ == '__main__':
       model_stats["model_name"] = model_name
 
       model, input_size = initialize_model(model_name = model_name, num_classes = num_classes, resume_from = resume_from)
-      dataloaders = get_dataloaders(device,input_size, batch_size, shuffle_datasets)
+      dataloaders = get_dataloaders(device,input_size, batch_size, shuffle_datasets, random_flip = random_flip, random_jitter=random_jitter)
       criterion = get_loss()
       model = model.to(device)
 
       optimizer = make_optimizer(model)
 
-      trained_model, validation_history = train_model(random_flip = random_flip, random_jitter=random_jitter, max_train_time=MAX_TRAIN_TIME,device=device,model_name=save_file, model=model, dataloaders=dataloaders, criterion=criterion, optimizer=optimizer,
+      trained_model, validation_history = train_model(max_train_time=MAX_TRAIN_TIME,device=device,model_name=save_file, model=model, dataloaders=dataloaders, criterion=criterion, optimizer=optimizer,
                save_dir=save_dir, save_all_epochs=save_all_epochs, num_epochs=num_epochs)
       
       end_time = time.perf_counter()
