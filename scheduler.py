@@ -355,7 +355,7 @@ if __name__ == '__main__':
     else:
         print("WARNING: Could not find GPU! Using CPU only")
     # Detect if we have a GPU available
-    schedule_name = "augmentations"
+    schedule_name = "resnet_augmentations"
     scheduler = pd.read_excel(schedule_name + ".xls")
     num_classes = 100
     shuffle_datasets = True
