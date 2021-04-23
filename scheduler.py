@@ -123,7 +123,7 @@ def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= 
         ])
     }
     if random_perspective:
-        data_transforms['train'].append(transforms.RandomPerspective())
+        data_transforms['train'].insert(0,transforms.RandomPerspective())
     if mirror_data:
         data_transforms['train'].insert(0,transforms.RandomHorizontalFlip(p=0.5))
     if random_jitter:
