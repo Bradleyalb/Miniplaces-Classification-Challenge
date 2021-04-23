@@ -95,7 +95,7 @@ def initialize_model(model_name, num_classes, resume_from = None):
     
     return model_ft, input_size
 
-def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= True,random_flip=False, random_jitter=False):
+def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= True,random_flip=False, random_jitter=False,random_crop=False,random_perspective=False):
     # How to transform the image when you are loading them.
     # you'll likely want to mess with the transforms on the training set.
     
@@ -105,7 +105,7 @@ def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= 
     data_transforms = {
         'train': [
             transforms.Resize(input_size),
-            transforms.CenterCrop(input_size),
+            transforms.RandomCrop(input_size) if random_crop else transforms.CenterCrop(input_size),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ],
@@ -122,6 +122,8 @@ def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= 
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
     }
+    if random_perspective:
+        data_transforms['train'].append(transforms.RandomPerspective())
     if mirror_data:
         data_transforms['train'].insert(0,transforms.RandomHorizontalFlip(p=0.5))
     if random_jitter:
@@ -377,6 +379,8 @@ if __name__ == '__main__':
       random_flip = row["Random Flip"]
       random_jitter = row["Random Jitter"]
       resume_from = row["Resume From"]
+      random_perspective =row["Random Perspective"]
+      random_crop = row["Random Crop"]
 
 
       model_stats = {}
@@ -385,7 +389,7 @@ if __name__ == '__main__':
       model_stats["model_name"] = model_name
 
       model, input_size = initialize_model(model_name = model_name, num_classes = num_classes, resume_from = resume_from)
-      dataloaders = get_dataloaders(device,input_size, batch_size, shuffle_datasets, random_flip = random_flip, random_jitter=random_jitter)
+      dataloaders = get_dataloaders(device,input_size, batch_size, shuffle_datasets, random_flip = random_flip, random_jitter=random_jitter, random_perspective=random_perspective,random_crop=random_crop)
       criterion = get_loss()
       model = model.to(device)
 
