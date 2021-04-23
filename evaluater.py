@@ -95,7 +95,7 @@ def initialize_model(model_name, num_classes, resume_from = None):
     
     return model_ft, input_size
 
-def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= True,random_flip=False, random_jitter=False):
+def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= False,random_flip=False, random_jitter=False):
     # How to transform the image when you are loading them.
     # you'll likely want to mess with the transforms on the training set.
     
@@ -122,10 +122,6 @@ def get_dataloaders(device,input_size, batch_size, shuffle = True, mirror_data= 
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
     }
-    if mirror_data:
-        data_transforms['train'].insert(0,transforms.RandomHorizontalFlip(p=0.5))
-    if random_jitter:
-        data_transforms['train'].insert(0,transforms.ColorJitter(brightness=0.3))
     data_transforms['train'] = transforms.Compose(data_transforms['train'])
     # Create training and validation datasets
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in data_transforms.keys()}
@@ -350,6 +346,7 @@ if __name__ == '__main__':
     model = model.to(device)
     generate_validation_labels = True
     val_loss, val_top1, val_top5, val_labels = evaluate(model, dataloaders['val'], criterion, is_labelled = True, generate_labels = generate_validation_labels, k = 5)
+    _, _, _, test_labels = evaluate(model, dataloaders['test'], criterion, is_labelled = False, generate_labels = True, k = 5)
     print("val loss", val_loss)
     print("val_top1",val_top1)
     print("val_top5",val_top5)
