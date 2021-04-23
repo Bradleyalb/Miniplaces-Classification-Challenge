@@ -340,7 +340,7 @@ if __name__ == '__main__':
     shuffle_datasets = True
 
     criterion = get_loss()
-    model, input_size = initialize_model(model_name = model_name, num_classes = num_classes, resume_from = "resnet_random_crop_perspective.pt")
+    model, input_size = initialize_model(model_name = model_name, num_classes = num_classes, resume_from = "resnet_random_crop_perspective_best.pt")
     dataloaders = get_dataloaders(device,input_size, batch_size, shuffle_datasets)
     
     model = model.to(device)
