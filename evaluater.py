@@ -334,11 +334,11 @@ if __name__ == '__main__':
     else:
         print("WARNING: Could not find GPU! Using CPU only")
     # Detect if we have a GPU available
-    model_name = "resnet"
+    model_name = "squeezenet"
     num_classes = 100
     batch_size = 32
     shuffle_datasets = True
-    resume_from = "resnet_baseline_best.pt"
+    resume_from = "squeezenet_baseline_best.pt"
     print(resume_from)
 
     criterion = get_loss()
@@ -348,7 +348,7 @@ if __name__ == '__main__':
     model = model.to(device)
     generate_validation_labels = True
     val_loss, val_top1, val_top5, val_labels = evaluate(model, dataloaders['val'], criterion, is_labelled = True, generate_labels = generate_validation_labels, k = 5)
-    train_loss, train_top1, train_top5, test_labels = evaluate(model, dataloaders['train'], criterion, is_labelled = False, generate_labels = True, k = 5)
+    train_loss, train_top1, train_top5, test_labels = evaluate(model, dataloaders['train'], criterion, is_labelled = True, generate_labels = True, k = 5)
     print("val loss: ", val_loss)
     print("val_top1: ",val_top1)
     print("val_top5: ",val_top5)
