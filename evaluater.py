@@ -338,9 +338,11 @@ if __name__ == '__main__':
     num_classes = 100
     batch_size = 32
     shuffle_datasets = True
+    resume_from = "resnet_baseline_best.pt"
+    print(resume_from)
 
     criterion = get_loss()
-    model, input_size = initialize_model(model_name = model_name, num_classes = num_classes, resume_from = "resnet_baseline_best.pt")
+    model, input_size = initialize_model(model_name = model_name, num_classes = num_classes, resume_from = resume_from)
     dataloaders = get_dataloaders(device,input_size, batch_size, shuffle_datasets)
     
     model = model.to(device)
