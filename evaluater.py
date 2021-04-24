@@ -356,8 +356,6 @@ if __name__ == '__main__':
     print("train_top5: ",train_top5)
     print("train_loss: ",train_loss)
 
-        ''' These convert your dataset labels into nice human readable names '''
-
     import json
 
     # def label_number_to_name(lbl_ix):
