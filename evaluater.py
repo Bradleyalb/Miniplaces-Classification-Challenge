@@ -352,7 +352,7 @@ if __name__ == '__main__':
     print("val loss: ", val_loss)
     print("val_top1: ",val_top1)
     print("val_top5: ",val_top5)
-    print("train_top1: ",test_top1)
+    print("train_top1: ",train_top1)
     print("train_top5: ",train_top5)
     print("train_loss: ",train_loss)
 
