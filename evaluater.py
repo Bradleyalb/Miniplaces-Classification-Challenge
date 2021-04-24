@@ -340,52 +340,55 @@ if __name__ == '__main__':
     shuffle_datasets = True
 
     criterion = get_loss()
-    model, input_size = initialize_model(model_name = model_name, num_classes = num_classes, resume_from = "resnet_random_crop_perspective_best.pt")
+    model, input_size = initialize_model(model_name = model_name, num_classes = num_classes, resume_from = "resnet_baseline_best.pt")
     dataloaders = get_dataloaders(device,input_size, batch_size, shuffle_datasets)
     
     model = model.to(device)
     generate_validation_labels = True
     val_loss, val_top1, val_top5, val_labels = evaluate(model, dataloaders['val'], criterion, is_labelled = True, generate_labels = generate_validation_labels, k = 5)
-    _, _, _, test_labels = evaluate(model, dataloaders['test'], criterion, is_labelled = False, generate_labels = True, k = 5)
-    print("val loss", val_loss)
-    print("val_top1",val_top1)
-    print("val_top5",val_top5)
+    train_loss, train_top1, train_top5, test_labels = evaluate(model, dataloaders['train'], criterion, is_labelled = False, generate_labels = True, k = 5)
+    print("val loss: ", val_loss)
+    print("val_top1: ",val_top1)
+    print("val_top5: ",val_top5)
+    print("train_top1: ",test_top1)
+    print("train_top5: ",train_top5)
+    print("train_loss: ",train_loss)
 
         ''' These convert your dataset labels into nice human readable names '''
 
     import json
 
-    def label_number_to_name(lbl_ix):
-        return dataloaders['val'].dataset.classes[lbl_ix]
+    # def label_number_to_name(lbl_ix):
+    #     return dataloaders['val'].dataset.classes[lbl_ix]
 
-    def dataset_labels_to_names(dataset_labels, dataset_name):
-        # dataset_name is one of 'train','test','val'
-        dataset_root = os.path.join(data_dir, dataset_name)
-        found_files = []
-        for parentdir, subdirs, subfns in os.walk(dataset_root):
-            parentdir_nice = os.path.relpath(parentdir, dataset_root)
-            found_files.extend([os.path.join(parentdir_nice, fn) for fn in subfns if fn.endswith('.jpg')])
-        # Sort alphabetically, this is the order that our dataset will be in
-        found_files.sort()
-        # Now we have two parallel arrays, one with names, and the other with predictions
-        assert len(found_files) == len(dataset_labels), "Found more files than we have labels"
-        preds = {os.path.basename(found_files[i]):list(map(label_number_to_name, dataset_labels[i])) for i in range(len(found_files))}
-        return preds
+    # def dataset_labels_to_names(dataset_labels, dataset_name):
+    #     # dataset_name is one of 'train','test','val'
+    #     dataset_root = os.path.join(data_dir, dataset_name)
+    #     found_files = []
+    #     for parentdir, subdirs, subfns in os.walk(dataset_root):
+    #         parentdir_nice = os.path.relpath(parentdir, dataset_root)
+    #         found_files.extend([os.path.join(parentdir_nice, fn) for fn in subfns if fn.endswith('.jpg')])
+    #     # Sort alphabetically, this is the order that our dataset will be in
+    #     found_files.sort()
+    #     # Now we have two parallel arrays, one with names, and the other with predictions
+    #     assert len(found_files) == len(dataset_labels), "Found more files than we have labels"
+    #     preds = {os.path.basename(found_files[i]):list(map(label_number_to_name, dataset_labels[i])) for i in range(len(found_files))}
+    #     return preds
         
 
-    test_labels_js = dataset_labels_to_names(test_labels, "test")
+    # test_labels_js = dataset_labels_to_names(test_labels, "test")
 
-    output_test_labels = "test_set_predictions"
-    output_salt_number = 0
+    # output_test_labels = "test_set_predictions"
+    # output_salt_number = 0
 
-    output_label_dir = "."
+    # output_label_dir = "."
 
-    while os.path.exists(os.path.join(output_label_dir, '%s%d.json' % (output_test_labels, output_salt_number))):
-        output_salt_number += 1
-        # Find a filename that doesn't exist
+    # while os.path.exists(os.path.join(output_label_dir, '%s%d.json' % (output_test_labels, output_salt_number))):
+    #     output_salt_number += 1
+    #     # Find a filename that doesn't exist
         
 
-    with open(os.path.join(output_label_dir, '%s%d.json' % (output_test_labels, output_salt_number)), "w") as f:
-        json.dump(test_labels_js, f, sort_keys=True, indent=4)
+    # with open(os.path.join(output_label_dir, '%s%d.json' % (output_test_labels, output_salt_number)), "w") as f:
+    #     json.dump(test_labels_js, f, sort_keys=True, indent=4)
         
-    print("Wrote predictions to:\n%s" % os.path.abspath(os.path.join(output_label_dir, '%s%d.json' % (output_test_labels, output_salt_number))))
+    # print("Wrote predictions to:\n%s" % os.path.abspath(os.path.join(output_label_dir, '%s%d.json' % (output_test_labels, output_salt_number))))
